@@ -860,9 +860,42 @@ const EmployeeDashboard = () => {
       });
       
       const currentEmployee = employeesResponse.data.find(emp => emp.email === userResponse.data.email);
-      setEmployee(currentEmployee);
+      
+      if (currentEmployee) {
+        setEmployee(currentEmployee);
+      } else {
+        // If employee not found in list, create a basic employee object
+        setEmployee({
+          full_name: "Employee User",
+          email: userResponse.data.email,
+          department: "N/A",
+          position: "Employee",
+          current_leave_balance: 0,
+          sick_days_used: 0,
+          sick_days_remaining: 3
+        });
+      }
     } catch (error) {
       console.error('Error fetching employee data:', error);
+      // Fallback for employees who can't access the employees endpoint
+      try {
+        const token = localStorage.getItem('token');
+        const userResponse = await axios.get(`${API}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        setEmployee({
+          full_name: "Employee User",
+          email: userResponse.data.email,
+          department: "N/A",
+          position: "Employee",
+          current_leave_balance: 0,
+          sick_days_used: 0,
+          sick_days_remaining: 3
+        });
+      } catch (fallbackError) {
+        console.error('Error in fallback:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
