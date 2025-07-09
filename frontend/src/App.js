@@ -760,6 +760,8 @@ const AddEmployeeForm = ({ onClose, onSuccess }) => {
 const ManagerDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchEmployees();
@@ -779,6 +781,12 @@ const ManagerDashboard = () => {
     }
   };
 
+  const filteredEmployees = employees.filter(emp => 
+    emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    emp.department.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -788,9 +796,23 @@ const ManagerDashboard = () => {
       <div className="bg-white rounded-xl shadow-sm p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Manager Dashboard</h2>
         
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search employees..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          />
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {employees.map((employee) => (
-            <div key={employee.id} className="bg-gray-50 rounded-lg p-4">
+          {filteredEmployees.map((employee) => (
+            <div
+              key={employee.id}
+              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors"
+              onClick={() => setSelectedEmployee(employee)}
+            >
               <h3 className="font-semibold text-gray-800">{employee.full_name}</h3>
               <p className="text-sm text-gray-600">{employee.position}</p>
               <p className="text-sm text-gray-600">{employee.department}</p>
@@ -806,6 +828,13 @@ const ManagerDashboard = () => {
           ))}
         </div>
       </div>
+
+      {selectedEmployee && (
+        <EmployeeViewModal
+          employee={selectedEmployee}
+          onClose={() => setSelectedEmployee(null)}
+        />
+      )}
     </div>
   );
 };
