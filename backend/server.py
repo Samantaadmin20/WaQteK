@@ -475,6 +475,18 @@ async def adjust_leave_balance(
         "adjustment": adjustment
     }
 
+class LeaveAdjustmentRequest(BaseModel):
+    adjustment: float
+    reason: str
+
+@api_router.post("/leave/adjust/{employee_id}/body")
+async def adjust_leave_balance_body(
+    employee_id: str,
+    request: LeaveAdjustmentRequest,
+    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.HR]))
+):
+    return await adjust_leave_balance(employee_id, request.adjustment, request.reason, current_user)
+
 # Health check
 @api_router.get("/health")
 async def health_check():
