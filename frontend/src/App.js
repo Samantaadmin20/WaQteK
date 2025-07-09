@@ -83,6 +83,226 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
+// Sidebar Navigation Component
+const Sidebar = ({ currentPage, setCurrentPage, userRole }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
+    { id: 'employees', label: 'Employees', icon: '👥' },
+    { id: 'leave', label: 'Leave Management', icon: '📅' },
+    { id: 'settings', label: 'Settings', icon: '⚙️' }
+  ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="fixed left-0 top-0 h-full w-55 bg-blue-800 text-white flex flex-col">
+      <div className="p-6 border-b border-blue-700">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+            <span className="text-lg font-bold">🕒</span>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold">WaQteK</h1>
+            <p className="text-xs text-blue-300">وقتك - Your Time</p>
+          </div>
+        </div>
+      </div>
+
+      <nav className="flex-1 py-4">
+        {menuItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setCurrentPage(item.id)}
+            className={`w-full flex items-center px-6 py-3 text-left hover:bg-blue-300 hover:bg-opacity-20 transition-colors ${
+              currentPage === item.id ? 'bg-blue-700 border-r-4 border-blue-300' : ''
+            }`}
+          >
+            <span className="text-lg mr-3">{item.icon}</span>
+            <span className="text-sm font-medium">{item.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="p-4 border-t border-blue-700">
+        <div className="text-xs text-blue-300 mb-2">
+          Role: <span className="capitalize text-white">{userRole}</span>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded text-sm transition-colors"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Leave Balance Card Component
+const LeaveBalanceCard = ({ currentBalance = 20, monthsWorked = 10, leaveTaken = 5, sickDaysUsed = 1 }) => {
+  const totalEarned = 2 * monthsWorked;
+  const availableLeave = totalEarned - leaveTaken;
+  const progressPercentage = (availableLeave / totalEarned) * 100;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 w-80">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">Leave Balance</h3>
+        <div className="relative">
+          <div className="w-16 h-16 relative">
+            <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="#e5e7eb"
+                strokeWidth="8"
+                fill="none"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="#3b82f6"
+                strokeWidth="8"
+                fill="none"
+                strokeDasharray={`${progressPercentage * 2.51}, 251`}
+                className="transition-all duration-300"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-lg font-bold text-gray-800">{availableLeave}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <div className="text-sm text-gray-600">
+          <span className="font-medium">Formula:</span> 2 × {monthsWorked} months - {leaveTaken} taken = {availableLeave} days
+        </div>
+        
+        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+          <span className="text-sm text-gray-600">Sick Days</span>
+          <div className="flex items-center">
+            <span 
+              className="text-lg cursor-pointer" 
+              title={`${sickDaysUsed}/3 used`}
+            >
+              💊
+            </span>
+            <span className="text-sm text-gray-600 ml-2">{sickDaysUsed}/3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Employee Table Component
+const EmployeeTable = ({ employees, onEmployeeClick, onAddEmployee }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm">
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-800">Employees</h3>
+          <button
+            onClick={onAddEmployee}
+            className="bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors"
+          >
+            <span className="text-xl">+</span>
+          </button>
+        </div>
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Department
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Leave
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {employees.map((employee) => (
+              <tr 
+                key={employee.id} 
+                className="hover:bg-gray-50 cursor-pointer h-15"
+                onClick={() => onEmployeeClick(employee)}
+              >
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-blue-600 font-medium text-sm">
+                        {employee.full_name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{employee.full_name}</div>
+                      <div className="text-sm text-gray-500">{employee.position}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {employee.department}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {employee.current_leave_balance} days
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                    Active
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// Stats Card Component
+const StatsCard = ({ title, value, icon, color = 'blue' }) => {
+  const colorClasses = {
+    blue: 'bg-blue-50 text-blue-600',
+    green: 'bg-green-50 text-green-600',
+    purple: 'bg-purple-50 text-purple-600',
+    orange: 'bg-orange-50 text-orange-600'
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex items-center">
+        <div className={`w-12 h-12 ${colorClasses[color]} rounded-lg flex items-center justify-center mr-4`}>
+          <span className="text-xl">{icon}</span>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Login Component
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -180,139 +400,22 @@ const Login = () => {
   );
 };
 
-// Dashboard Component
+// Dashboard Component with Sidebar Layout
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const getDashboardContent = () => {
-    switch (user.role) {
-      case 'admin':
-        return <AdminDashboard />;
-      case 'hr':
-        return <HRDashboard />;
-      case 'manager':
-        return <ManagerDashboard />;
-      case 'employee':
-        return <EmployeeDashboard />;
-      default:
-        return <div>Invalid role</div>;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white text-lg font-bold">🕒</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">WaQteK</h1>
-                <p className="text-sm text-gray-600">وقتك - Your Time</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Welcome back!</p>
-                <p className="text-sm font-medium text-gray-800 capitalize">{user.role}</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {getDashboardContent()}
-      </main>
-    </div>
-  );
-};
-
-// Admin Dashboard
-const AdminDashboard = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/employees`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Admin Dashboard</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-blue-800">Total Users</h3>
-            <p className="text-3xl font-bold text-blue-600">{users.length}</p>
-          </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-green-800">Active Employees</h3>
-            <p className="text-3xl font-bold text-green-600">{users.filter(u => u.current_leave_balance >= 0).length}</p>
-          </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-purple-800">Departments</h3>
-            <p className="text-3xl font-bold text-purple-600">{new Set(users.map(u => u.department)).size}</p>
-          </div>
-          <div className="bg-orange-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-orange-800">System Health</h3>
-            <p className="text-xl font-bold text-orange-600">🟢 Online</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">System Overview</h3>
-        <p className="text-gray-600">Full system control and monitoring capabilities available.</p>
-      </div>
-    </div>
-  );
-};
-
-// HR Dashboard
-const HRDashboard = () => {
+  const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    if (user.role === 'hr' || user.role === 'admin' || user.role === 'manager') {
+      fetchEmployees();
+    } else {
+      setLoading(false);
+    }
+  }, [user.role]);
 
   const fetchEmployees = async () => {
     try {
@@ -338,10 +441,8 @@ const HRDashboard = () => {
         }
       );
       
-      // Refresh employee data
       fetchEmployees();
       
-      // Update selected employee if it's the one being adjusted
       if (selectedEmployee && selectedEmployee.id === employeeId) {
         const updatedEmployee = await axios.get(`${API}/employees/${employeeId}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -356,67 +457,111 @@ const HRDashboard = () => {
     }
   };
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const renderContent = () => {
+    if (loading) {
+      return <div className="text-center py-8">Loading...</div>;
+    }
 
-  if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
-  }
+    switch (currentPage) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
+              <LeaveBalanceCard />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatsCard 
+                title="Total Employees" 
+                value={employees.length} 
+                icon="👥" 
+                color="blue" 
+              />
+              <StatsCard 
+                title="Active Users" 
+                value={employees.filter(e => e.current_leave_balance >= 0).length} 
+                icon="✅" 
+                color="green" 
+              />
+              <StatsCard 
+                title="Departments" 
+                value={new Set(employees.map(e => e.department)).size} 
+                icon="🏢" 
+                color="purple" 
+              />
+              <StatsCard 
+                title="Pending Requests" 
+                value="5" 
+                icon="⏳" 
+                color="orange" 
+              />
+            </div>
+            
+            {(user.role === 'hr' || user.role === 'admin') && (
+              <EmployeeTable 
+                employees={employees} 
+                onEmployeeClick={setSelectedEmployee}
+                onAddEmployee={() => setShowAddForm(true)}
+              />
+            )}
+          </div>
+        );
+      
+      case 'employees':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800">Employees</h2>
+            </div>
+            
+            <EmployeeTable 
+              employees={employees} 
+              onEmployeeClick={setSelectedEmployee}
+              onAddEmployee={() => setShowAddForm(true)}
+            />
+          </div>
+        );
+        
+      case 'leave':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Leave Management</h2>
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <p className="text-gray-600">Leave management features coming soon...</p>
+            </div>
+          </div>
+        );
+        
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Settings</h2>
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <p className="text-gray-600">Settings panel coming soon...</p>
+            </div>
+          </div>
+        );
+        
+      default:
+        return <div>Page not found</div>;
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">HR Dashboard</h2>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            + Add Employee
-          </button>
-        </div>
-
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search employees..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEmployees.map((employee) => (
-            <div
-              key={employee.id}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors"
-              onClick={() => setSelectedEmployee(employee)}
-            >
-              <h3 className="font-semibold text-gray-800">{employee.full_name}</h3>
-              <p className="text-sm text-gray-600">{employee.position}</p>
-              <p className="text-sm text-gray-600">{employee.department}</p>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-sm font-medium text-green-600">
-                  Leave: {employee.current_leave_balance} days
-                </span>
-                <span className="text-sm text-gray-500" title={`Sick Days: ${employee.sick_days_used}/3`}>
-                  💊 {employee.sick_days_remaining}/3
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} userRole={user.role} />
+      
+      <div className="ml-55 p-8">
+        {renderContent()}
       </div>
 
       {selectedEmployee && (
-        <EmployeeProfile
+        <EmployeeProfileModal
           employee={selectedEmployee}
           onClose={() => setSelectedEmployee(null)}
           onAdjustLeave={adjustLeaveBalance}
+          userRole={user.role}
         />
       )}
 
@@ -433,78 +578,16 @@ const HRDashboard = () => {
   );
 };
 
-// Employee View Modal Component (Read-only for Managers)
-const EmployeeViewModal = ({ employee, onClose }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Employee Profile</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">{employee.full_name}</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">Email</p>
-                  <p className="font-medium">{employee.email}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Department</p>
-                  <p className="font-medium">{employee.department}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Position</p>
-                  <p className="font-medium">{employee.position}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Phone</p>
-                  <p className="font-medium">{employee.phone_number}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-blue-800 mb-2">Current Leave Balance</h3>
-              <p className="text-4xl font-bold text-blue-600">{employee.current_leave_balance} days</p>
-            </div>
-
-            <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-green-800 mb-2">Sick Days Status</h3>
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">💊</span>
-                <span className="text-lg font-medium text-green-600">
-                  {employee.sick_days_remaining}/3 remaining
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 rounded-lg p-4">
-              <p className="text-sm text-yellow-800">
-                👁️ <strong>View Only:</strong> As a Manager, you can view employee information but cannot make leave adjustments. 
-                Only HR personnel can adjust leave balances.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Employee Profile Component
-const EmployeeProfile = ({ employee, onClose, onAdjustLeave }) => {
+// Employee Profile Modal
+const EmployeeProfileModal = ({ employee, onClose, onAdjustLeave, userRole }) => {
   const [reason, setReason] = useState('');
 
   const handleAdjustment = (adjustment) => {
+    if (userRole !== 'hr' && userRole !== 'admin') {
+      alert('Only HR personnel can adjust leave balances');
+      return;
+    }
+    
     if (!reason.trim()) {
       alert('Please provide a reason for the adjustment');
       return;
@@ -566,49 +649,51 @@ const EmployeeProfile = ({ employee, onClose, onAdjustLeave }) => {
               </div>
             </div>
 
-            <div className="bg-white border rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Adjust Leave Balance</h3>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Reason for adjustment
-                </label>
-                <input
-                  type="text"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Enter reason..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-              </div>
+            {(userRole === 'hr' || userRole === 'admin') && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Adjust Leave Balance</h3>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for adjustment
+                  </label>
+                  <input
+                    type="text"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Enter reason..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
 
-              <div className="grid grid-cols-4 gap-3">
-                <button
-                  onClick={() => handleAdjustment(1)}
-                  className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium"
-                >
-                  +1 Day
-                </button>
-                <button
-                  onClick={() => handleAdjustment(0.5)}
-                  className="bg-green-400 text-white py-2 px-4 rounded-lg hover:bg-green-500 transition-colors font-medium"
-                >
-                  +½ Day
-                </button>
-                <button
-                  onClick={() => handleAdjustment(-0.5)}
-                  className="bg-red-400 text-white py-2 px-4 rounded-lg hover:bg-red-500 transition-colors font-medium"
-                >
-                  -½ Day
-                </button>
-                <button
-                  onClick={() => handleAdjustment(-1)}
-                  className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors font-medium"
-                >
-                  -1 Day
-                </button>
+                <div className="grid grid-cols-4 gap-3">
+                  <button
+                    onClick={() => handleAdjustment(1)}
+                    className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium"
+                  >
+                    +1 Day
+                  </button>
+                  <button
+                    onClick={() => handleAdjustment(0.5)}
+                    className="bg-green-400 text-white py-2 px-4 rounded-lg hover:bg-green-500 transition-colors font-medium"
+                  >
+                    +½ Day
+                  </button>
+                  <button
+                    onClick={() => handleAdjustment(-0.5)}
+                    className="bg-red-400 text-white py-2 px-4 rounded-lg hover:bg-red-500 transition-colors font-medium"
+                  >
+                    -½ Day
+                  </button>
+                  <button
+                    onClick={() => handleAdjustment(-1)}
+                    className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors font-medium"
+                  >
+                    -1 Day
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -616,7 +701,7 @@ const EmployeeProfile = ({ employee, onClose, onAdjustLeave }) => {
   );
 };
 
-// Add Employee Form Component
+// Add Employee Form
 const AddEmployeeForm = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     full_name: '',
@@ -817,207 +902,6 @@ const AddEmployeeForm = ({ onClose, onSuccess }) => {
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Manager Dashboard
-const ManagerDashboard = () => {
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
-
-  const fetchEmployees = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/employees`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setEmployees(response.data);
-    } catch (error) {
-      console.error('Error fetching employees:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredEmployees = employees.filter(emp => 
-    emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Manager Dashboard</h2>
-        
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search employees..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEmployees.map((employee) => (
-            <div
-              key={employee.id}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors"
-              onClick={() => setSelectedEmployee(employee)}
-            >
-              <h3 className="font-semibold text-gray-800">{employee.full_name}</h3>
-              <p className="text-sm text-gray-600">{employee.position}</p>
-              <p className="text-sm text-gray-600">{employee.department}</p>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-sm font-medium text-green-600">
-                  Leave: {employee.current_leave_balance} days
-                </span>
-                <span className="text-sm text-gray-500" title={`Sick Days: ${employee.sick_days_used}/3`}>
-                  💊 {employee.sick_days_remaining}/3
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {selectedEmployee && (
-        <EmployeeViewModal
-          employee={selectedEmployee}
-          onClose={() => setSelectedEmployee(null)}
-        />
-      )}
-    </div>
-  );
-};
-
-// Employee Dashboard
-const EmployeeDashboard = () => {
-  const [employee, setEmployee] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchEmployeeData();
-  }, []);
-
-  const fetchEmployeeData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const userResponse = await axios.get(`${API}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const employeesResponse = await axios.get(`${API}/employees`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const currentEmployee = employeesResponse.data.find(emp => emp.email === userResponse.data.email);
-      
-      if (currentEmployee) {
-        setEmployee(currentEmployee);
-      } else {
-        // If employee not found in list, create a basic employee object
-        setEmployee({
-          full_name: "Employee User",
-          email: userResponse.data.email,
-          department: "N/A",
-          position: "Employee",
-          current_leave_balance: 0,
-          sick_days_used: 0,
-          sick_days_remaining: 3
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching employee data:', error);
-      // Fallback for employees who can't access the employees endpoint
-      try {
-        const token = localStorage.getItem('token');
-        const userResponse = await axios.get(`${API}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        setEmployee({
-          full_name: "Employee User",
-          email: userResponse.data.email,
-          department: "N/A",
-          position: "Employee",
-          current_leave_balance: 0,
-          sick_days_used: 0,
-          sick_days_remaining: 3
-        });
-      } catch (fallbackError) {
-        console.error('Error in fallback:', fallbackError);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
-  }
-
-  if (!employee) {
-    return <div className="text-center py-8">Employee data not found</div>;
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">My Dashboard</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-blue-50 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-blue-800 mb-2">Leave Balance</h3>
-            <p className="text-4xl font-bold text-blue-600">{employee.current_leave_balance} days</p>
-          </div>
-          
-          <div className="bg-green-50 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-green-800 mb-2">Sick Days</h3>
-            <div className="flex items-center space-x-2">
-              <span className="text-3xl">💊</span>
-              <span className="text-2xl font-bold text-green-600">
-                {employee.sick_days_remaining}/3
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-6 bg-gray-50 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">My Information</h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-gray-600">Name</p>
-              <p className="font-medium">{employee.full_name}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Department</p>
-              <p className="font-medium">{employee.department}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Position</p>
-              <p className="font-medium">{employee.position}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Email</p>
-              <p className="font-medium">{employee.email}</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
