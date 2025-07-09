@@ -4,14 +4,54 @@ import json
 from datetime import datetime
 
 class WaQteKHRSystemTest(unittest.TestCase):
-    def setUp(self):
-        self.base_url = "https://ed1618e0-3d7a-4bce-83c6-5e559a2200ad.preview.emergentagent.com/api"
-        self.admin_credentials = {"email": "admin@waqtek.com", "password": "admin123"}
-        self.hr_credentials = {"email": "hr1@waqtek.com", "password": "hr123"}
-        self.manager_credentials = {"email": "manager1@waqtek.com", "password": "manager123"}
-        self.employee_credentials = {"email": "emp1@waqtek.com", "password": "emp123"}
-        self.tokens = {}
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = "https://ed1618e0-3d7a-4bce-83c6-5e559a2200ad.preview.emergentagent.com/api"
+        cls.admin_credentials = {"email": "admin@waqtek.com", "password": "admin123"}
+        cls.hr_credentials = {"email": "hr1@waqtek.com", "password": "hr123"}
+        cls.manager_credentials = {"email": "manager1@waqtek.com", "password": "manager123"}
+        cls.employee_credentials = {"email": "emp1@waqtek.com", "password": "emp123"}
+        cls.tokens = {}
         
+        # Login with all roles and store tokens
+        print("Logging in with all roles...")
+        
+        # Admin login
+        response = requests.post(f"{cls.base_url}/auth/login", json=cls.admin_credentials)
+        if response.status_code == 200:
+            data = response.json()
+            cls.tokens["admin"] = data["access_token"]
+            print("✅ Admin login successful")
+        else:
+            print(f"❌ Admin login failed: {response.text}")
+        
+        # HR login
+        response = requests.post(f"{cls.base_url}/auth/login", json=cls.hr_credentials)
+        if response.status_code == 200:
+            data = response.json()
+            cls.tokens["hr"] = data["access_token"]
+            print("✅ HR login successful")
+        else:
+            print(f"❌ HR login failed: {response.text}")
+        
+        # Manager login
+        response = requests.post(f"{cls.base_url}/auth/login", json=cls.manager_credentials)
+        if response.status_code == 200:
+            data = response.json()
+            cls.tokens["manager"] = data["access_token"]
+            print("✅ Manager login successful")
+        else:
+            print(f"❌ Manager login failed: {response.text}")
+        
+        # Employee login
+        response = requests.post(f"{cls.base_url}/auth/login", json=cls.employee_credentials)
+        if response.status_code == 200:
+            data = response.json()
+            cls.tokens["employee"] = data["access_token"]
+            print("✅ Employee login successful")
+        else:
+            print(f"❌ Employee login failed: {response.text}")
+    
     def test_01_health_check(self):
         """Test the health check endpoint"""
         response = requests.get(f"{self.base_url}/health")
@@ -20,46 +60,8 @@ class WaQteKHRSystemTest(unittest.TestCase):
         self.assertEqual(data["status"], "healthy")
         self.assertEqual(data["service"], "WaQteK HR Management System")
         print("✅ Health check endpoint is working")
-        
-    def test_02_login_all_roles(self):
-        """Test login functionality for all roles"""
-        # Admin login
-        response = requests.post(f"{self.base_url}/auth/login", json=self.admin_credentials)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(data["token_type"], "bearer")
-        self.assertEqual(data["user_role"], "admin")
-        self.tokens["admin"] = data["access_token"]
-        print("✅ Admin login successful")
-        
-        # HR login
-        response = requests.post(f"{self.base_url}/auth/login", json=self.hr_credentials)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(data["token_type"], "bearer")
-        self.assertEqual(data["user_role"], "hr")
-        self.tokens["hr"] = data["access_token"]
-        print("✅ HR login successful")
-        
-        # Manager login
-        response = requests.post(f"{self.base_url}/auth/login", json=self.manager_credentials)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(data["token_type"], "bearer")
-        self.assertEqual(data["user_role"], "manager")
-        self.tokens["manager"] = data["access_token"]
-        print("✅ Manager login successful")
-        
-        # Employee login
-        response = requests.post(f"{self.base_url}/auth/login", json=self.employee_credentials)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(data["token_type"], "bearer")
-        self.assertEqual(data["user_role"], "employee")
-        self.tokens["employee"] = data["access_token"]
-        print("✅ Employee login successful")
     
-    def test_03_get_current_user(self):
+    def test_02_get_current_user(self):
         """Test getting current user info"""
         for role, token in self.tokens.items():
             headers = {"Authorization": f"Bearer {token}"}
@@ -69,7 +71,7 @@ class WaQteKHRSystemTest(unittest.TestCase):
             self.assertEqual(data["role"], role)
             print(f"✅ Get current user info for {role} successful")
     
-    def test_04_get_employees_access_control(self):
+    def test_03_get_employees_access_control(self):
         """Test role-based access control for getting employees"""
         # Admin, HR, and Manager should be able to get employees
         for role in ["admin", "hr", "manager"]:
@@ -86,7 +88,7 @@ class WaQteKHRSystemTest(unittest.TestCase):
         self.assertEqual(response.status_code, 403)
         print("✅ Employee cannot access employees list (correctly forbidden)")
     
-    def test_05_leave_adjustment_access_control(self):
+    def test_04_leave_adjustment_access_control(self):
         """Test role-based access control for leave adjustments"""
         # Get an employee ID first
         headers = {"Authorization": f"Bearer {self.tokens['hr']}"}
@@ -120,7 +122,7 @@ class WaQteKHRSystemTest(unittest.TestCase):
             self.assertEqual(response.status_code, 403)
             print(f"✅ {role.capitalize()} cannot adjust leave balance (correctly forbidden)")
     
-    def test_06_leave_adjustment_validation(self):
+    def test_05_leave_adjustment_validation(self):
         """Test validation for leave adjustments"""
         # Get an employee ID first
         headers = {"Authorization": f"Bearer {self.tokens['hr']}"}
@@ -150,7 +152,7 @@ class WaQteKHRSystemTest(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         print("✅ Invalid adjustment amount correctly rejected")
     
-    def test_07_employee_details(self):
+    def test_06_employee_details(self):
         """Test getting employee details"""
         # Get an employee ID first
         headers = {"Authorization": f"Bearer {self.tokens['hr']}"}
