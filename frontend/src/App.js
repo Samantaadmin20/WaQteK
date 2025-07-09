@@ -433,6 +433,73 @@ const HRDashboard = () => {
   );
 };
 
+// Employee View Modal Component (Read-only for Managers)
+const EmployeeViewModal = ({ employee, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Employee Profile</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">{employee.full_name}</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">Email</p>
+                  <p className="font-medium">{employee.email}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Department</p>
+                  <p className="font-medium">{employee.department}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Position</p>
+                  <p className="font-medium">{employee.position}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Phone</p>
+                  <p className="font-medium">{employee.phone_number}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-blue-800 mb-2">Current Leave Balance</h3>
+              <p className="text-4xl font-bold text-blue-600">{employee.current_leave_balance} days</p>
+            </div>
+
+            <div className="bg-green-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-green-800 mb-2">Sick Days Status</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl">💊</span>
+                <span className="text-lg font-medium text-green-600">
+                  {employee.sick_days_remaining}/3 remaining
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 rounded-lg p-4">
+              <p className="text-sm text-yellow-800">
+                👁️ <strong>View Only:</strong> As a Manager, you can view employee information but cannot make leave adjustments. 
+                Only HR personnel can adjust leave balances.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Employee Profile Component
 const EmployeeProfile = ({ employee, onClose, onAdjustLeave }) => {
   const [reason, setReason] = useState('');
