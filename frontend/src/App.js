@@ -331,11 +331,10 @@ const HRDashboard = () => {
   const adjustLeaveBalance = async (employeeId, adjustment, reason) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API}/leave/adjust/${employeeId}`, 
+      await axios.post(`${API}/leave/adjust/${employeeId}/body`, 
         { adjustment, reason },
         {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { adjustment, reason }
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
         }
       );
       
@@ -349,9 +348,11 @@ const HRDashboard = () => {
         });
         setSelectedEmployee(updatedEmployee.data);
       }
+      
+      alert('Leave balance adjusted successfully!');
     } catch (error) {
       console.error('Error adjusting leave balance:', error);
-      alert('Error adjusting leave balance');
+      alert('Error adjusting leave balance: ' + (error.response?.data?.detail || 'Unknown error'));
     }
   };
 
